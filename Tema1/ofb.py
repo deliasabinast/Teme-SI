@@ -1,28 +1,34 @@
+import hashlib
+
 from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad, unpad
 
-plainText= "dsahgdijsadljfn1385sJHDAF315fdf"
-key = pad(b"keythatineed", AES.block_size)
-iv = pad(b"initvector",AES.block_size)
+iv = b'1234567898765432'
 
-def __init__(self, key): #constructor
-    self.key = key
 
-def _encrypt(plainText):
+class Ofb:
+    def __init__(self, key):  # constructor
+        self.key = hashlib.sha3_256(key).digest()
 
-    padded_bytes=pad(data_bytes, AES.block_size)
-    AES_object=AES.new(key, AES.MODE_OFB, iv)
-    cipherText = AES_object.encrypt(padded_bytes)
-    return cipherText
+    def encrypt(self, plainText):
+        if isinstance(plainText, str):
+            data_bytes = bytes(plainText, 'utf-8')  # convert it to utf 8 format
+        else:
+            data_bytes = plainText
+        padded_bytes = self.pad(data_bytes)
+        AES_object = AES.new(self.key, AES.MODE_OFB, iv)
+        cipherText = AES_object.encrypt(padded_bytes)
+        return cipherText
 
-cipherText = _encrypt(plainText)
-print(cipherText)
+    @staticmethod
+    def pad(text):
+        return text + bytes((16 - len(text) % 16) * chr(16 - len(text) % 16), "utf-8")
 
-def _decrypt(cipherText):
-    AES_object = AES.new(key, AES.MODE_OFB, iv)
-    raw_bytes= AES_object.decrypt(cipherText)
-    extracted_bytes=unpad(raw_bytes, AES.block_size)
-    return extracted_bytes
+    @staticmethod
+    def unpad(text):
+        return text[:-text[- 1]]
 
-plainText=_decrypt(cipherText)
-print(plainText)
+    def decrypt(self, cipherText):
+        AES_object = AES.new(self.key, AES.MODE_OFB, iv)
+        raw_bytes = AES_object.decrypt(cipherText)
+        extracted_bytes = self.unpad(raw_bytes)
+        return extracted_bytes
